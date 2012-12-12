@@ -29,6 +29,8 @@ var net = require('net'),
 	PlayerManager = require('./src/player_manager').PlayerManager,
 
 	// third party
+	Enumerable = require('./src/lib/linq.js'),
+	Table = require('cli-table'),
 	commander = require('commander'),
 	Localize  = require('localize'),
 	telnet = require('telnet');
@@ -318,6 +320,24 @@ var server_commands = {
 			players.each(function (p) { p.getSocket().end(); });
 			init(true);
 		}, time);
+	},
+
+	who: function() {
+		console.log('\n\t' + players.players.length + ' Players Online');
+		// no need to do further processing for 0 count
+		if(players.players.length === 0) return;
+
+		var table = new Table({
+			head: ['Name', 'Location'],
+			colWidths: [30, 20]
+		});
+
+		var locs = Enumerable.from(rooms.rooms).select('$.value');
+		var online = Enumerable.from(players.players)
+			.join(locs, '$.location', '$.location', 'outer,inner => [ outer.name, inner.title["en"] ]')
+			.forEach(function(row) { table.push(row); });
+
+		console.log(table.toString());
 	}
 };
 
@@ -328,10 +348,15 @@ var serverREPL = repl.start({
 	output: process.stdout
 });
 
+serverREPL.on('exit', function() {
+	process.exit();
+});
+
 // repl commands start with a dot i.e. ranviermud> .hotboot
 serverREPL.defineCommand('save_players', save);
 serverREPL.defineCommand('hotboot', server_commands.hotboot);
 serverREPL.defineCommand('restart', server_commands.restart);
+serverREPL.defineCommand('who', server_commands.who);
 
 serverREPL.context.players = players;
 serverREPL.context.rooms = rooms;

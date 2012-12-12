@@ -12,6 +12,7 @@
 		"express":"",
 		"jade":"",
 		"commander": "",
-		"telnet": ""
+		"telnet": "",
+		"cli-table": ""
 	}
 }
