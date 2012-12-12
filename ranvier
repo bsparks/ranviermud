@@ -332,7 +332,11 @@ var serverREPL = repl.start({
 serverREPL.defineCommand('save_players', save);
 serverREPL.defineCommand('hotboot', server_commands.hotboot);
 serverREPL.defineCommand('restart', server_commands.restart);
+
 serverREPL.context.players = players;
+serverREPL.context.rooms = rooms;
+serverREPL.context.npcs = npcs;
+serverREPL.context.items = items;
 
 
 // vim: set syn=javascript :
