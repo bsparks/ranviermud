@@ -16,7 +16,6 @@
 var net = require('net'),
 	util = require('util'),
 	express = require('express'),
-	commander = require('commander'),
 
 	// local
 	Commands = require('./src/commands').Commands,
@@ -29,9 +28,9 @@ var net = require('net'),
 	PlayerManager = require('./src/player_manager').PlayerManager,
 
 	// third party
+	commander = require('commander'),
 	Localize  = require('localize'),
-	argv = require('optimist').argv,
-	telnet = require('./src/3rdparty/telnet.js');
+	telnet = require('telnet');
 
 /**
  * These aren't really globals, they're only "global" to this file,
@@ -91,26 +90,49 @@ var init = function (restart_server)
 		/**
 		* Effectively the 'main' game loop but not really because it's a REPL
 		*/
-		server = new telnet.Server(function (socket) {
-			socket.on('interrupt', function () {
-				socket.write("\n*interrupt*\n");
+		server = telnet.createServer(function (client) {
+			client.on('window size', function (e) {
+				if (e.command === 'sb') {
+					// a real "resize" event; 'readline' listens for this
+					client.columns = e.columns;
+					client.rows = e.rows;
+					client.emit('resize');
+				}
 			});
 
-			// Register all of the events
-			for (var event in Events.events) {
-				socket.on(event, Events.events[event]);
+			client.on('interrupt', function() { client.write('\n*interrupt*\n'); });
+
+			// register all of the events
+			for(var event in Events.events) {
+				client.on(event, Events.events[event]);
 			}
 
-			socket.write("Connecting...\n");
-			util.log("User connected...");
-			// @see: src/events.js - Events.events.login
-			socket.emit('login', socket);
+			// 'readline' will call `setRawMode` when it is a function
+			client.setRawMode = setRawMode;
 
+			// make unicode characters work properly
+			client['do'].transmit_binary();
+
+			// emit 'window size' events
+			client['do'].window_size();
+
+			client.write('Connecting...\n');
+			util.log('User connected...');
+
+			client.emit('login', client);
 		});
 
-		// start the server
-		server.listen(commander.port);
+		server.on('error', function (err) {
+			if (err.code == 'EACCES') {
+				console.error('%s: You must be "root" to bind to port %d', err.code, port);
+			} else {
+				throw err;
+			}
+		});
 
+		server.on('listening', function () {
+			console.log('server listening on port %d', this.address().port);
+		});
 
 		// save every 10 minutes
 		util.log("Setting autosave to " + commander.save + " minutes.");
@@ -135,7 +157,8 @@ var init = function (restart_server)
 
 	load(function (success) {
 		if (success) {
-			util.log(util.format("Server started on port: %d %s", commander.port, '...' ));
+			// start the server
+			server.listen(commander.port);
 			server.emit('startup');
 		} else {
 			process.exit(1);
@@ -143,10 +166,25 @@ var init = function (restart_server)
 	});
 };
 
-
 // START IT UP!
 init();
 
+/**
+ * The equivalent of "raw mode" via telnet option commands.
+ * Set this function on a telnet `client` instance.
+ */
+
+function setRawMode (mode) {
+	if (mode) {
+		this['do'].suppress_go_ahead();
+		this.will.suppress_go_ahead();
+		this.will.echo();
+	} else {
+		this.dont.suppress_go_ahead();
+		this.wont.suppress_go_ahead();
+		this.wont.echo();
+	}
+}
 
 /**
  * Save all connected players

@@ -6,12 +6,12 @@
 		"js-yaml":"",
 		"localize":"",
 		"node-uuid":"",
-		"optimist":"",
 		"sprintf":"",
 		"sty":"",
 		"yaml":"",
 		"express":"",
 		"jade":"",
-		"commander": ""
+		"commander": "",
+		"telnet": ""
 	}
 }
