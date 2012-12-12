@@ -25,6 +25,18 @@ var commands_dir = __dirname + '/../commands/';
  * typed after the command itself, and then the player that typed it.
  */
 var Commands = {
+	// create an alias to another player command
+	alias: function (name, target) {
+		if(name === target) {
+			console.warn('Attempting to alias player command with same name:', name);
+			return;
+		}
+
+		Commands.player_commands[name] = function() {
+			Commands.player_commands[target].apply(null, [].slice.call(arguments));
+		};
+	},
+
 	player_commands : {},
 
 	/**
@@ -126,7 +138,7 @@ var Commands = {
 	}
 };
 
-alias('exp', 'tnl');
+Commands.alias('exp', 'tnl');
 
 exports.Commands = Commands;
 
@@ -170,16 +182,4 @@ function move (exit, player)
 
 	room.emit('playerEnter', player, players);
 
-};
-
-/**
- * Alias commands
- * @param string name   Name of the alias E.g., l for look
- * @param string target name of the command
- */
-function alias (name, target)
-{
-	Commands.player_commands[name] = function () {
-		Commands.player_commands[target].apply(null, [].slice.call(arguments))
-	};
-};
+}

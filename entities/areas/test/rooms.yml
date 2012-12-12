@@ -1,47 +1,62 @@
-- 
-  title: 
+-
+  title:
     en: 'Test'
     es: 'ES - Test'
-  description: 
+  description:
     en: 'You are in the test room. there isn''t much here'
     es: 'ES-You are in the test room. there isn''t much here'
-  exits: 
-    - 
+  exits:
+    -
       location: 2
       direction: 'north'
-    - 
+    -
       location: 3
       direction: 'ladder'
-      leave_message: 
+      leave_message:
         en: ' climbs up the ladder.'
         es: ' climbs up the ladder. ES'
+    -
+      location: 4
+      direction: 'inv'
   location: 1
   area: 'test'
-- 
-  title: 
+-
+  title:
     en: 'Plain room'
     es: 'ES - Plain room'
   location: 2
-  description: 
+  description:
     en: 'Not a lot going on here, just a plain room.'
     es: 'ES - Not a lot going on here, just a plain room.'
-  exits: 
-    - 
+  exits:
+    -
       location: 1
       direction: 'south'
-- 
-  title: 
+-
+  title:
     en: 'Ladder'
     es: 'ES-Ladder'
   location: 3
   script: '3.js'
-  description: 
+  description:
     en: 'You''re up a ladder, how silly.'
     es: 'ES - You''re up a ladder, how silly.'
-  exits: 
-    - 
+  exits:
+    -
       location: 1
       direction: 'down'
-      leave_message: 
+      leave_message:
         en: ' slides down the ladder.'
         es: ' slides down the ladder. ES'
+-
+  title:
+    en: 'Experimental Test Room'
+    es: 'ES - Experimental Test Room'
+  location: 4
+  description:
+    en: "This room is contantly phasing in and out of existence. It's super experimental."
+    es: 'WAT'
+  exits:
+    -
+      location: 1
+      direction: 'north'
