@@ -25,16 +25,32 @@ var commands_dir = __dirname + '/../commands/';
  * typed after the command itself, and then the player that typed it.
  */
 var Commands = {
-	// create an alias to another player command
-	alias: function (name, target) {
+	/*
+	* create an alias to the target command
+	* @param name - the name of the "new" command
+	* @param target - the name of the aliased command
+	* @param curry [optional] - arguments to pass to aliased command (added to the front of the user's arguments)
+	* i.e. Commands.alias('south', 'go', 'south'); or Commands.alias('backpack', 'inventory');
+	*/
+	alias: function (name, target, curry) {
 		if(name === target) {
 			console.warn('Attempting to alias player command with same name:', name);
 			return;
 		}
 
 		Commands.player_commands[name] = function() {
-			Commands.player_commands[target].apply(null, [].slice.call(arguments));
+			var args = Array.prototype.slice.call(arguments);
+			if(curry) {
+				if(util.isArray(curry)) {
+					args = curry.concat(args);
+				} else {
+					args.unshift(curry);
+				}
+			}
+			var player = args.pop();
+			Commands.player_commands[target].apply(null, [args, player]);
 		};
+		Commands.player_commands[name].isAlias = true;
 	},
 
 	player_commands : {},

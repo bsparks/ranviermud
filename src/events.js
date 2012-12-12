@@ -148,7 +148,7 @@ var Events = {
 					return false;
 				}
 
-				
+
 				if (!dontwelcome) {
 					arg.write(L('PASSWORD'));
 				}
@@ -202,7 +202,7 @@ var Events = {
 				// All that shit done, let them play!
 				player.getSocket().emit("commands", player);
 				break;
-			};
+			}
 		},
 
 		/**
