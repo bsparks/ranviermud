@@ -16,6 +16,7 @@
 var net = require('net'),
 	util = require('util'),
 	express = require('express'),
+	repl = require('repl'),
 
 	// local
 	Commands = require('./src/commands').Commands,
@@ -319,24 +320,19 @@ var server_commands = {
 		}, time);
 	}
 };
-//
-//process.on('SIGINT', function ()
-//{
-//  util.log("Shutting down - not so gracefully...");
-//  process.exit(0);
-//});
-//
-process.stdin.resume();
-process.stdin.on('data', function (data)
-{
-	data = data.trim();
-	var command = data.split(' ')[0];
 
-	if (!(command in server_commands)) {
-		console.log("That's not a real command...");
-		return;
-	}
-
-	server_commands[command](data.split(' ').slice(1).join(' '));
+// startup a full node repl for javascript awesomeness
+var serverREPL = repl.start({
+	prompt: "ranviermud> ",
+	input: process.stdin,
+	output: process.stdout
 });
+
+// repl commands start with a dot i.e. ranviermud> .hotboot
+serverREPL.defineCommand('save_players', save);
+serverREPL.defineCommand('hotboot', server_commands.hotboot);
+serverREPL.defineCommand('restart', server_commands.restart);
+serverREPL.context.players = players;
+
+
 // vim: set syn=javascript :
