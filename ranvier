@@ -328,13 +328,13 @@ var server_commands = {
 		if(players.players.length === 0) return;
 
 		var table = new Table({
-			head: ['Name', 'Location'],
-			colWidths: [30, 20]
+			head: ['Name', 'Location', 'Online'],
+			colWidths: [30, 20, 10]
 		});
 
 		var locs = Enumerable.from(rooms.rooms).select('$.value');
 		var online = Enumerable.from(players.players)
-			.join(locs, '$.location', '$.location', 'outer,inner => [ outer.name, inner.title["en"] ]')
+			.join(locs, '$.location', '$.location', 'outer,inner => [ outer.name, inner.title["en"], outer.lastLogin ]')
 			.forEach(function(row) { table.push(row); });
 
 		console.log(table.toString());

@@ -43,7 +43,7 @@ var gen_next = function (event)
 	return function (arg, nextstage) {
 		func = (arg instanceof Player ? arg.getSocket() : arg);
 		func.emit.apply(func, [event].concat([].slice.call(arguments)));
-	}
+	};
 };
 
 /**
@@ -53,7 +53,7 @@ var gen_next = function (event)
  */
 var gen_repeat = function (repeat_args, next)
 {
-	return function () { next.apply(null, [].slice.call(repeat_args)) };
+	return function () { next.apply(null, [].slice.call(repeat_args)); };
 };
 
 /**
@@ -114,7 +114,7 @@ var Events = {
 						return;
 					}
 
-					var name = name.toString().trim();
+					name = name.toString().trim();
 					if (/[^a-z]/i.test(name) || !name) {
 						arg.write("That's not really your name, now is it?\r\n");
 						return repeat();
@@ -169,7 +169,7 @@ var Events = {
 				});
 				break;
 			case 'done':
-				var name = dontwelcome;
+				name = dontwelcome;
 				// If there is a player connected with the same name boot them the heck off
 				if (players.some(function (p) { return p.getName() === name; })) {
 					players.eachIf(function (p) { return p.getName() === name; }, function (p) {
@@ -181,6 +181,7 @@ var Events = {
 
 				player = new Player(arg);
 				player.load(Data.loadPlayer(name));
+				player.lastLogin = new Date(); // todo: something with loaded value?
 				players.addPlayer(player);
 
 				player.getSocket().on('close', function () { players.removePlayer(player);});
@@ -194,7 +195,6 @@ var Events = {
 					inv.push(item);
 				});
 				player.setInventory(inv);
-
 
 				Commands.player_commands.look(null, player);
 				player.prompt();
