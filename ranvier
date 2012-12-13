@@ -17,6 +17,7 @@ var net = require('net'),
 	util = require('util'),
 	express = require('express'),
 	repl = require('repl'),
+	fs = require('fs'),
 
 	// local
 	Commands = require('./src/commands').Commands,
@@ -46,15 +47,39 @@ var net = require('net'),
 		console.log('Opened connection to database!');
 	});
 
-	var Profession = require('./src/professions.js').Profession;
-	var foo = new Profession({name: 'Warrior'});
-	foo.save(function(err, foo) {
-		console.log("save foo", err, foo);
-	});
-	var bar = new Profession({name: 'Cleric'});
-	bar.save(function(err, bar) {
-		console.log("save bar", err, bar);
-	});
+	// init game data
+	var Game = {
+		Npcs: {}
+	};
+
+	function initDB() {
+		var npc_dir = __dirname + '/game/npcs/';
+		var dbSaveHandler = function(err, obj) {
+			if(err) {
+				console.error("Error saving template: ", err);
+			}
+
+			console.log("Object saved successfully. ", obj);
+		};
+		fs.readdir(npc_dir, function (err, files) {
+			var npc_file,
+				npc_name;
+
+			// Load any npc files
+			for (var j in files) {
+				npc_file = npc_dir + files[j];
+				if (!fs.statSync(npc_file).isFile()) continue;
+				if (!npc_file.match(/js$/)) continue;
+
+				npc_name = files[j].split('.')[0];
+
+				Game.Npcs[npc_name] = require(npc_file).npc;
+				Game.Npcs[npc_name].save(dbSaveHandler);
+			}
+		});
+
+		// todo: close process async
+	}
 
 /**
  * These aren't really globals, they're only "global" to this file,
@@ -80,8 +105,18 @@ commander
 	.option('-r, --respawn [time]', 'Number of minutes between respawn tickets [20]', 20)
 	.option('-p, --port [portNumber]', 'Port to host telnet server [23]', 23)
 	.option('-l, --locale [lang]', 'Default locale for the server', 'en')
-	.option('-v, --verbose', 'Verbose console logging.')
-	.parse(process.argv);
+	.option('-v, --verbose', 'Verbose console logging.');
+
+commander
+	.command("initworld")
+	.description("intialize the database with templates")
+	.action(initDB);
+
+commander
+	.command('*')
+	.action(StartServer);
+
+commander.parse(process.argv);
 
 /**
  * Do the dirty work
@@ -191,7 +226,7 @@ var init = function (restart_server)
 };
 
 // START IT UP!
-init();
+//init();
 
 /**
  * The equivalent of "raw mode" via telnet option commands.
@@ -267,11 +302,6 @@ function load(callback)
 		});
 	});
 }
-
-
-// Not game stuff, this is for the server executable
-process.stdin.setEncoding('utf8');
-l10n = new Localize(require('js-yaml').load(require('fs').readFileSync(__dirname + '/l10n/server.yml').toString('utf8')), undefined, 'zz');
 
 /**
  * Commands that the server executable itself accepts
@@ -362,27 +392,35 @@ var server_commands = {
 	}
 };
 
-// startup a full node repl for javascript awesomeness
-var serverREPL = repl.start({
-	prompt: "ranviermud> ",
-	input: process.stdin,
-	output: process.stdout
-});
+function StartServer() {
+	init();
 
-serverREPL.on('exit', function() {
-	process.exit();
-});
+	// Not game stuff, this is for the server executable
+	process.stdin.setEncoding('utf8');
+	l10n = new Localize(require('js-yaml').load(require('fs').readFileSync(__dirname + '/l10n/server.yml').toString('utf8')), undefined, 'zz');
 
-// repl commands start with a dot i.e. ranviermud> .hotboot
-serverREPL.defineCommand('save_players', save);
-serverREPL.defineCommand('hotboot', server_commands.hotboot);
-serverREPL.defineCommand('restart', server_commands.restart);
-serverREPL.defineCommand('who', server_commands.who);
+	// startup a full node repl for javascript awesomeness
+	var serverREPL = repl.start({
+		prompt: "ranviermud> ",
+		input: process.stdin,
+		output: process.stdout
+	});
 
-serverREPL.context.players = players;
-serverREPL.context.rooms = rooms;
-serverREPL.context.npcs = npcs;
-serverREPL.context.items = items;
+	serverREPL.on('exit', function() {
+		process.exit();
+	});
+
+	// repl commands start with a dot i.e. ranviermud> .hotboot
+	serverREPL.defineCommand('save_players', save);
+	serverREPL.defineCommand('hotboot', server_commands.hotboot);
+	serverREPL.defineCommand('restart', server_commands.restart);
+	serverREPL.defineCommand('who', server_commands.who);
+
+	serverREPL.context.players = players;
+	serverREPL.context.rooms = rooms;
+	serverREPL.context.npcs = npcs;
+	serverREPL.context.items = items;
+}
 
 
 // vim: set syn=javascript :
