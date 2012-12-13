@@ -33,7 +33,28 @@ var net = require('net'),
 	Table = require('cli-table'),
 	commander = require('commander'),
 	Localize  = require('localize'),
-	telnet = require('telnet');
+	telnet = require('telnet'),
+	mongoose = require('mongoose');
+
+	var db = mongoose.connect('mongodb://localhost/ranviermud').connection;
+
+	db.on('error', function() {
+		console.error("Failed to open db connection", arguments);
+	});
+
+	db.on('open', function() {
+		console.log('Opened connection to database!');
+	});
+
+	var Profession = require('./src/professions.js').Profession;
+	var foo = new Profession({name: 'Warrior'});
+	foo.save(function(err, foo) {
+		console.log("save foo", err, foo);
+	});
+	var bar = new Profession({name: 'Cleric'});
+	bar.save(function(err, bar) {
+		console.log("save bar", err, bar);
+	});
 
 /**
  * These aren't really globals, they're only "global" to this file,
