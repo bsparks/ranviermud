@@ -21,6 +21,8 @@ var Player = function(socket) {
 	self.inventory = [];
 	self.equipment = {};
 
+	self.socket = socket;
+
 	// In combat is either false or an NPC vnum
 	self.in_combat = false;
 
@@ -321,7 +323,7 @@ var Player = function(socket) {
 	{
 		var weapon = self.getEquipped('wield', true)
 		var base = [1, 20];
-		var damage = weapon ? 
+		var damage = weapon ?
 			(weapon.getAttribute('damage') ?
 				weapon.getAttribute('damage').split('-').map(function (i) { return parseInt(i, 10); })
 				: base
