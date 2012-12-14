@@ -29,6 +29,9 @@ var net = require('net'),
 	Plugins  = require('./src/plugins'),
 	PlayerManager = require('./src/player_manager').PlayerManager,
 
+	// grab all of the game object definitions
+	GameSchema = require('./src/schema/schema').Schema,
+
 	// third party
 	Enumerable = require('./src/lib/linq.js'),
 	Table = require('cli-table'),
@@ -37,6 +40,7 @@ var net = require('net'),
 	telnet = require('telnet'),
 	mongoose = require('mongoose');
 
+	// todo: move server to config file, make db accessible to other stuff?
 	var db = mongoose.connect('mongodb://localhost/ranviermud').connection;
 
 	db.on('error', function() {
@@ -133,30 +137,10 @@ var net = require('net'),
 	respawnint,
 	saveint;
 
-// cmdline options
-commander
-	.version('0.0.1') // todo: yank from package.json
-	.option('-s, --save [time]', 'Number of minutes between auto-save ticks [10]', 10)
-	.option('-r, --respawn [time]', 'Number of minutes between respawn tickets [20]', 20)
-	.option('-p, --port [portNumber]', 'Port to host telnet server [23]', 23)
-	.option('-l, --locale [lang]', 'Default locale for the server', 'en')
-	.option('-v, --verbose', 'Verbose console logging.');
-
-commander
-	.command("initworld")
-	.description("intialize the database with templates")
-	.action(initDB);
-
-commander
-	.command('*')
-	.action(StartServer);
-
-commander.parse(process.argv);
-
 /**
  * Do the dirty work
  */
-var init = function (restart_server)
+function init(restart_server)
 {
 	util.log("START - Loading entities");
 	players = new PlayerManager([]);
@@ -455,7 +439,29 @@ function StartServer() {
 	serverREPL.context.rooms = rooms;
 	serverREPL.context.npcs = npcs;
 	serverREPL.context.items = items;
+	serverREPL.context.schema = GameSchema;
 }
+
+// cmdline options
+commander
+	.version('0.0.1') // todo: yank from package.json
+	.option('-s, --save [time]', 'Number of minutes between auto-save ticks [10]', 10)
+	.option('-r, --respawn [time]', 'Number of minutes between respawn tickets [20]', 20)
+	.option('-p, --port [portNumber]', 'Port to host telnet server [23]', 23)
+	.option('-l, --locale [lang]', 'Default locale for the server', 'en')
+	.option('-v, --verbose', 'Verbose console logging.');
+
+commander
+	.command("initworld")
+	.description("intialize the database with templates")
+	.action(initDB);
+
+commander
+	.command('*')
+	.action(StartServer);
+
+// this is the app entry point
+commander.parse(process.argv);
 
 
 // vim: set syn=javascript :
