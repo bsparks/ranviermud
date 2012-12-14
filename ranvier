@@ -49,18 +49,53 @@ var net = require('net'),
 
 	// init game data
 	var Game = {
+		Areas: {},
 		Npcs: {}
 	};
 
 	function initDB() {
 		var npc_dir = __dirname + '/game/npcs/';
+		var area_dir = __dirname + '/game/areas/';
+
 		var dbSaveHandler = function(err, obj) {
 			if(err) {
-				console.error("Error saving template: ", err);
+				console.error("Error saving template: ", err.err);
+				return;
 			}
 
 			console.log("Object saved successfully. ", obj);
 		};
+
+		console.log("*********LOADING AREA FILES***************");
+		fs.readdir(area_dir, function (err, files) {
+			var area_folder,
+				area_file,
+				area_files;
+
+			// examine areas folder
+			for (var j in files) {
+				area_folder = area_dir + files[j];
+				if (!fs.statSync(area_folder).isDirectory()) continue;
+				// read area folder
+				area_files = fs.readdirSync(area_folder);
+				for(var i in area_files) {
+					if (!area_files[i].match(/area.js/)) continue;
+					console.log("found area ", area_folder, area_files[i], files[j]);
+					Game.Areas[files[j]] = require(area_folder + '/' + area_files[i]).area;
+				}
+			}
+
+			console.log("All Areas", Game.Areas);
+			for(var area in Game.Areas) {
+				Game.Areas[area].initRooms(area_dir + area + '/rooms/');
+			}
+
+			console.log("Areas w/ Rooms", Game.Areas);
+
+			// todo: save
+		});
+
+		console.log("*********LOADING NPC FILES***************");
 		fs.readdir(npc_dir, function (err, files) {
 			var npc_file,
 				npc_name;

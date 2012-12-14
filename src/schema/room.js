@@ -2,15 +2,17 @@
 
 var mongoose = require('mongoose'),
     Schema = mongoose.Schema,
-    l10n = require('./l10n.js').l10nSchema;
+    l10n = require('./l10n.js').l10nSchema,
+    fs = require('fs');
 
 var Exit = new Schema({
     direction: String,
-    location: Schema.Types.ObjectId
+    location: Number
 });
 
 var RoomSchema = new Schema({
-    title: { type: String, required: true}, // developer key
+    location: Number, // developer key
+    title: { type: String, required: true},
     shortDescr: [l10n],
     descr: [l10n],
     exits: [Exit],
@@ -25,8 +27,11 @@ var AreaSchema = new Schema({
     suggested_range: String
 });
 
-AreaSchema.statics.initRooms = function(path) {
-    this.rooms = [];
+AreaSchema.methods.initRooms = function(path) {
+    var self = this;
+
+    self.rooms = [];
+
 
     fs.readdir(path, function(err, files) {
         var room_file,
@@ -40,10 +45,13 @@ AreaSchema.statics.initRooms = function(path) {
 
             room = require(room_file).room;
 
-            room.area = this._id;
+            room.area = self._id;
 
-            this.rooms.push(room);
+            self.rooms.push(room);
+            room.save();
         }
+
+        //console.log(self.title + " ROOMS: ", self.rooms);
     });
 };
 
