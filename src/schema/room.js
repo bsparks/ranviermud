@@ -22,10 +22,35 @@ var Room = mongoose.model('Room', RoomSchema);
 
 var AreaSchema = new Schema({
     title: String,
-    rooms: [RoomSchema]
+    suggested_range: String
 });
+
+AreaSchema.statics.initRooms = function(path) {
+    this.rooms = [];
+
+    fs.readdir(path, function(err, files) {
+        var room_file,
+            room;
+
+        // Load any npc files
+        for (var j in files) {
+            room_file = path + files[j];
+            if (!fs.statSync(room_file).isFile()) continue;
+            if (!room_file.match(/js$/)) continue;
+
+            room = require(room_file).room;
+
+            room.area = this._id;
+
+            this.rooms.push(room);
+        }
+    });
+};
+
+var Area = mongoose.model('Area', AreaSchema);
 
 exports.ExitSchema = Exit;
 exports.RoomSchema = RoomSchema;
 exports.Room = Room;
 exports.AreaSchema = AreaSchema;
+exports.Area = Area;
