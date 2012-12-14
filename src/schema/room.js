@@ -7,11 +7,11 @@ var mongoose = require('mongoose'),
 
 var Exit = new Schema({
     direction: String,
-    location: Number
+    location: String
 });
 
 var RoomSchema = new Schema({
-    location: Number, // developer key
+    location: String, // tag to match up with exits
     title: { type: String, required: true},
     shortDescr: [l10n],
     descr: [l10n],
@@ -27,11 +27,11 @@ var AreaSchema = new Schema({
     suggested_range: String
 });
 
+// read game data and import into database
 AreaSchema.methods.initRooms = function(path) {
     var self = this;
 
     self.rooms = [];
-
 
     fs.readdir(path, function(err, files) {
         var room_file,

@@ -3,7 +3,7 @@
 var Room = require('../../../../src/schema/room').Room;
 
 exports.room = new Room({
-    location: 3,
+    location: 'test.3',
     title: 'Test Room 3',
     descr: [{
         en: 'You are in a test room. There isn\'t much going on here.',
@@ -15,6 +15,6 @@ exports.room = new Room({
     }],
     exits: [{
         direction: 'south',
-        location: 1
+        location: 'test.1'
     }]
 });
