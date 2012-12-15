@@ -24,7 +24,8 @@ var PlayerSchema = new Schema({
     prompts: {
         normal: {type: String, "default": '%health/%max_healthHP>'},
         combat: {type: String, "default": "<bold>[%health/%max_healthHP] 0--{======> %target_name: [%target_health/%target_max_health]</bold>\r\n>"}
-    }
+    },
+    lastLogin: Date
 });
 
 // virtuals get called every time in a stack, dont do them here!

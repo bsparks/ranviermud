@@ -8,7 +8,8 @@ var crypto   = require('crypto'),
     Item     = require('./items').Item,
     Player   = require('./player').Player,
 	Skills   = require('./skills').Skills,
-	l10nHelper = require('./l10n');
+	l10nHelper = require('./l10n'),
+	GameSchema = require('./schema/schema').Schema;
 
 
 /**
@@ -46,6 +47,13 @@ var gen_next = function (event)
 	};
 };
 
+var nextGen = function(event) {
+	return function (arg, nextstage) {
+		func = (arg instanceof GameSchema.player.Player ? arg.getSocket() : arg);
+		func.emit.apply(func, [event].concat([].slice.call(arguments)));
+	};
+};
+
 /**
  * Helper for repeating staged events
  * @param Array repeat_args
@@ -78,11 +86,11 @@ var Events = {
 			dontwelcome = typeof dontwelcome ==-'undefined' ? false : dontwelcome;
 			stage = stage || 'intro';
 
-			if (arg instanceof Player) {
-				l10n.setLocale(arg.getLocale());
+			if (arg instanceof GameSchema.player.Player) {
+				l10n.setLocale(arg.locale);
 			}
 
-			var next   = gen_next('login');
+			var next   = nextGen('login');
 			var repeat = gen_repeat(arguments, next);
 
 			switch (stage)
@@ -116,22 +124,21 @@ var Events = {
 
 					name = name.toString().trim();
 					if (/[^a-z]/i.test(name) || !name) {
+						console.warn("Failed name attempt", name);
 						arg.write("That's not really your name, now is it?\r\n");
 						return repeat();
 					}
 
 					name = name[0].toUpperCase() + name.toLowerCase().substr(1);
-					var data = Data.loadPlayer(name);
+					GameSchema.player.Player.findOne({name: name}).exec(function(err, player) {
+						if(!player) {
+							arg.emit('createPlayer', arg);
+							return;
+						}
 
-					// That player doesn't exit so ask if them to create it
-					if (!data) {
-						arg.emit('createPlayer', arg);
+						next(arg, 'password', false, name);
 						return;
-					}
-
-
-					next(arg, 'password', false, name);
-					return;
+					});
 				});
 				break;
 			case 'password':
@@ -160,47 +167,48 @@ var Events = {
 						return next(arg, 'password', true, name);
 					}
 					pass = crypto.createHash('md5').update(pass.toString('').trim()).digest('hex');
-					if (pass !== Data.loadPlayer(name).password) {
-						arg.write(L('PASSWORD_FAIL') + "\r\n");
-						password_attempts[name] += 1;
-						return repeat();
-					}
-					next(arg, 'done', name);
+					GameSchema.player.Player.findOne({name: name}).exec(function(err, player) {
+						if(!player) {
+							arg.emit('createPlayer', arg);
+							return;
+						}
+
+						if(pass !== player.password) {
+							arg.write(L('PASSWORD_FAIL') + "\r\n");
+							password_attempts[name] += 1;
+							return repeat();
+						}
+
+						next(arg, 'done', name);
+						return;
+					});
 				});
 				break;
 			case 'done':
 				name = dontwelcome;
 				// If there is a player connected with the same name boot them the heck off
+				/*
 				if (players.some(function (p) { return p.getName() === name; })) {
 					players.eachIf(function (p) { return p.getName() === name; }, function (p) {
 						p.emit('quit');
 						p.say("Replaced.");
 						players.removePlayer(p, true);
 					});
-				}
+				}*/
+				GameSchema.player.Player.findOne({name: name}, function(err, player) {
+					player.lastLogin = new Date();
+					player.setSocket(arg);
+					player.getSocket().on('close', function closeSocket() { players.removePlayer(player); });
+					player.sayL10n(l10n, 'WELCOME', player.name);
 
-				player = new Player(arg);
-				player.load(Data.loadPlayer(name));
-				player.lastLogin = new Date(); // todo: something with loaded value?
-				players.addPlayer(player);
+					players.addPlayer(player);
 
-				player.getSocket().on('close', function () { players.removePlayer(player);});
-				player.sayL10n(l10n, 'WELCOME', player.getName());
+					Commands.player_commands.look(null, player);
+					player.prompt();
 
-				// Load the player's inventory (There's probably a better place to do this)
-				var inv = [];
-				player.getInventory().forEach(function (item) {
-					item = new Item(item);
-					items.addItem(item);
-					inv.push(item);
+					player.getSocket().emit('commands', player);
+
 				});
-				player.setInventory(inv);
-
-				Commands.player_commands.look(null, player);
-				player.prompt();
-
-				// All that shit done, let them play!
-				player.getSocket().emit("commands", player);
 				break;
 			}
 		},
@@ -399,11 +407,15 @@ var Events = {
 			// 'done' assumes the argument passed to the event is a player, ...so always do that.
 			case 'done':
 				arg.setLocation(players.getDefaultLocation());
-				// create the pfile then send them on their way
-				arg.save(function () {
-					players.addPlayer(arg);
-					arg.prompt();
-					arg.getSocket().emit('commands', arg);
+				var playa = new GameSchema.player.Player({
+					name: arg.name,
+					locale: arg.getLocale(),
+					password: arg.password
+				});
+				playa.setSocket(arg.getSocket());
+				playa.save(function() {
+					playa.prompt();
+					playa.getSocket().emit('commands', arg);
 				});
 				break;
 
