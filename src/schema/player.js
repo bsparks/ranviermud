@@ -10,7 +10,7 @@ var PlayerSchema = new Schema({
     password: {type: String, required: true},
     shortDescr: String,
     descr: String,
-    location: {type: Number, "default": -1},
+    location: {type: String, "default": 'LIMBO'},
     attributes: {
         level: {type: Number, "default": 1},
         health: {type: Number, "default": 1},
@@ -27,6 +27,18 @@ var PlayerSchema = new Schema({
     },
     lastLogin: Date
 });
+
+PlayerSchema.methods.getLocation = function() {
+    return this.location;
+};
+
+PlayerSchema.methods.getLocale = function() {
+    return this.locale;
+};
+
+PlayerSchema.methods.getName = function() {
+    return this.name;
+}
 
 // virtuals get called every time in a stack, dont do them here!
 PlayerSchema.methods.setSocket = function(socket) {

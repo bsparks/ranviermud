@@ -187,14 +187,13 @@ var Events = {
 			case 'done':
 				name = dontwelcome;
 				// If there is a player connected with the same name boot them the heck off
-				/*
 				if (players.some(function (p) { return p.getName() === name; })) {
 					players.eachIf(function (p) { return p.getName() === name; }, function (p) {
 						p.emit('quit');
 						p.say("Replaced.");
 						players.removePlayer(p, true);
 					});
-				}*/
+				}
 				GameSchema.player.Player.findOne({name: name}, function(err, player) {
 					player.lastLogin = new Date();
 					player.setSocket(arg);
