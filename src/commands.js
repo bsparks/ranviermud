@@ -2,8 +2,11 @@ var util = require('util'),
     ansi = require('sty').parse,
     fs = require('fs'),
 
-    CommandUtil = require('./command_util').CommandUtil;
-	l10nHelper  = require('./l10n');
+    CommandUtil = require('./command_util').CommandUtil,
+	l10nHelper  = require('./l10n'),
+
+	GameSchema = require('./schema/schema').Schema;
+
 var rooms   = null;
 var players = null;
 var items   = null;
@@ -92,14 +95,14 @@ var Commands = {
 		fs.readdir(commands_dir, function (err, files)
 		{
 			// Load any npc files
-			for (j in files) {
+			for (var j in files) {
 				var command_file = commands_dir + files[j];
 				if (!fs.statSync(command_file).isFile()) continue;
 				if (!command_file.match(/js$/)) continue;
 
 				var command_name = files[j].split('.')[0];
 
-				Commands.player_commands[command_name] = require(command_file).command(rooms, items, players, npcs, Commands);
+				Commands.player_commands[command_name] = require(command_file).command(rooms, items, players, npcs, Commands, GameSchema);
 			}
 		});
 	},

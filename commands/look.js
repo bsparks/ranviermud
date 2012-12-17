@@ -1,12 +1,30 @@
 var CommandUtil = require('../src/command_util').CommandUtil;
 var l10n_file = __dirname + '/../l10n/commands/look.yml';
 var l10n = new require('localize')(require('js-yaml').load(require('fs').readFileSync(l10n_file).toString('utf8')), undefined, 'zz');
-exports.command = function (rooms, items, players, npcs, Commands)
+exports.command = function (rooms, items, players, npcs, Commands, GameSchema)
 {
 	return function (args, player)
 	{
-		var room = rooms.getAt(player.getLocation());
 
+		GameSchema.room.Room.findOne({location: player.getLocation()}, function(err, room) {
+			console.log("LOOK: ", player.getLocation(), room);
+
+			if (!room)
+			{
+				player.sayL10n(l10n, 'LIMBO');
+				return;
+			}
+
+			// render room
+			player.say(room.title);
+			player.say(room.description[0][player.locale]); //todo cycle or random instead of 0?
+			player.say('');
+		});
+
+		// old below
+		return;
+
+		var room = rooms.getAt(player.getLocation());
 		if (args) {
 			// Look at items in the room first
 			var thing = CommandUtil.findItemInRoom(items, args, room, player, true);

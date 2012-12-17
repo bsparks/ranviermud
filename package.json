@@ -14,6 +14,7 @@
 		"commander": "",
 		"telnet": "",
 		"cli-table": "",
-		"mongoose": ""
+		"mongoose": "",
+		"hogan.js": ""
 	}
 }

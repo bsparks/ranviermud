@@ -9,7 +9,7 @@ var NpcSchema = new Schema({
     keywords: [l10n],
     shortDescr: [l10n],
     descr: [l10n],
-    location: {type: Number, "default": -1},
+    location: {type: String, "default": 'LIMBO'},
     attributes: {
         level: {type: Number, "default": 1},
         health: {type: Number, "default": 1},
