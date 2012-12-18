@@ -1,6 +1,7 @@
 // go.js
 // the go command takes care of using a direction even if there is a competing command
-exports.command = function (rooms, items, players, npcs, Commands) {
+var Deferred = require('promised-io/promise').Deferred;
+exports.command = function (rooms, items, players, npcs, Commands, GameSchema) {
 
     Commands.alias('exit', 'go');
     Commands.alias('run', 'go');
@@ -21,9 +22,38 @@ exports.command = function (rooms, items, players, npcs, Commands) {
     return function(args, player) {
         var exit = args[0];
 
-        if(!Commands.room_exits(exit, player)) {
-            player.say("go where?");
-        }
+        var deferred = new Deferred();
+
+        // where are we now?
+        GameSchema.room.Room.findOne({location: player.location}, function(err, room) {
+            if(err) {
+                console.error("ERROR ROOM", err);
+                deferred.reject(err);
+                return;
+            }
+
+            var togo = null;
+            room.exits.forEach(function(x) {
+                if(x.direction === exit) {
+                    togo = x.location;
+                }
+            });
+
+            if(!togo) {
+                player.say("go where?");
+                deferred.resolve(true);
+                return;
+            }
+
+            // move there
+            player.location = togo;
+            Commands.player_commands.look(null, player);
+            room.emit('playerLeave', player);
+
+            deferred.resolve(true);
+        });
+
+        return deferred.promise;
     };
 };
 exports.commandHelp = "Move in the direction of an exit.";
