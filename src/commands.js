@@ -33,6 +33,7 @@ var Commands = {
 	* @param name - the name of the "new" command
 	* @param target - the name of the aliased command
 	* @param curry [optional] - arguments to pass to aliased command (added to the front of the user's arguments)
+	* @param commandHelp [optional] - help text to use for this new alias (system should use original if omitted here)
 	* i.e. Commands.alias('south', 'go', 'south'); or Commands.alias('backpack', 'inventory');
 	*/
 	alias: function (name, target, curry, commandHelp) {
@@ -52,7 +53,7 @@ var Commands = {
 				}
 			}
 			var player = args.pop();
-			return Commands.player_commands[target].apply(context, [args, player]);
+			return Commands.player_commands[target].call(context, args, player);
 		};
 		Commands.player_commands[name].isAlias = true;
 		Commands.player_commands[name].aliasOf = target;
