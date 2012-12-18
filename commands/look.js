@@ -1,29 +1,32 @@
 var CommandUtil = require('../src/command_util').CommandUtil;
 var l10n_file = __dirname + '/../l10n/commands/look.yml';
 var l10n = new require('localize')(require('js-yaml').load(require('fs').readFileSync(l10n_file).toString('utf8')), undefined, 'zz');
+var Deferred = require('promised-io/promise').Deferred;
+
 exports.command = function (rooms, items, players, npcs, Commands, GameSchema)
 {
 	Commands.alias('l', 'look');
 
-	return function (args, player)
+	return function LookCmd(args, player)
 	{
-		GameSchema.room.Room.findOne({location: player.getLocation()}, function(err, room) {
-			console.log("LOOK: ", player.getLocation(), room);
+		var deferred = new Deferred();
 
-			if (!room)
-			{
+		GameSchema.room.Room.findOne({location: player.getLocation()}, function(err, room) {
+			//console.log("LOOK: ", player.getLocation(), room);
+
+			if(!room) {
 				player.sayL10n(l10n, 'LIMBO');
-				return;
+			} else {
+				// render room
+				player.say(room.title);
+				player.say(room.descr[0][player.locale]); //todo cycle or random instead of 0?
 			}
 
-			// render room
-			player.say(room.title);
-			player.say(room.descr[0][player.locale]); //todo cycle or random instead of 0?
-			player.say('');
+			deferred.resolve(true);
 		});
 
-		// old below
-		return;
+		// because we need to do some other async biz, return a promise
+		return deferred.promise;
 
 		var room = rooms.getAt(player.getLocation());
 		if (args) {

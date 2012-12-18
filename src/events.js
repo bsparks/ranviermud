@@ -1,6 +1,7 @@
 var crypto   = require('crypto'),
     util     = require('util'),
     ansi     = require('colorize').ansify,
+    when     = require("promised-io/promise").when,
 
     Commands = require('./commands').Commands,
     Channels = require('./channels').Channels,
@@ -218,33 +219,37 @@ var Events = {
 		 */
 		commands : function(player)
 		{
+			function loopCommands() {
+				player.prompt();
+				player.getSocket().emit('commands', player);
+			}
+
 			// only parses commands, channels, etc. must have commands to work.
 			// TODO: localize strings
 			player.getSocket().once('data', function(data)
 			{
 				data = data.toString().trim();
-				var result;
 				if (data) {
 					var command = data.split(' ').shift();
 					var args    = data.split(' ').slice(1).join(' ');
 					// all commands should exist or be aliased
 					if (!(command in Commands.player_commands)) {
 						player.say(command + ' is not a valid command.');
+						loopCommands();
 					} else {
 						try {
-							Commands.player_commands[command](args, player);
+							when(Commands.player_commands[command](args, player), loopCommands);
 						} catch(e) {
 							console.log("Command Exception! " + command);
 							console.log(e);
 							player.say("Server Error executing command, please contact and admin.");
+							loopCommands();
 						}
 					}
 				} else {
 					player.say("what?");
+					loopCommands();
 				}
-
-				player.prompt();
-				player.getSocket().emit('commands', player); // loop
 			});
 		},
 

@@ -15,6 +15,7 @@
 		"telnet": "",
 		"cli-table": "",
 		"mongoose": "",
-		"hogan.js": ""
+		"hogan.js": "",
+		"promised-io": ""
 	}
 }

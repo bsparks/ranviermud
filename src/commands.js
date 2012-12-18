@@ -42,6 +42,7 @@ var Commands = {
 		}
 
 		Commands.player_commands[name] = function() {
+			var context = this; // store and pass along context
 			var args = Array.prototype.slice.call(arguments);
 			if(curry) {
 				if(util.isArray(curry)) {
@@ -51,9 +52,10 @@ var Commands = {
 				}
 			}
 			var player = args.pop();
-			Commands.player_commands[target].apply(null, [args, player]);
+			return Commands.player_commands[target].apply(context, [args, player]);
 		};
 		Commands.player_commands[name].isAlias = true;
+		Commands.player_commands[name].aliasOf = target;
 	},
 
 	player_commands : {},
@@ -94,15 +96,22 @@ var Commands = {
 		// Load external commands
 		fs.readdir(commands_dir, function (err, files)
 		{
-			// Load any npc files
+			// load all js command files in the commands folder
 			for (var j in files) {
 				var command_file = commands_dir + files[j];
 				if (!fs.statSync(command_file).isFile()) continue;
 				if (!command_file.match(/js$/)) continue;
 
 				var command_name = files[j].split('.')[0];
+				var command = require(command_file);
 
-				Commands.player_commands[command_name] = require(command_file).command(rooms, items, players, npcs, Commands, GameSchema);
+				// exports.commandName will provide a string for the command instead of relying on filename
+				// allows for some commands that can't be filenames like '/say'
+				if(command.commandName) {
+					command_name = command.commandName;
+				}
+
+				Commands.player_commands[command_name] = command.command(rooms, items, players, npcs, Commands, GameSchema);
 			}
 		});
 	},
