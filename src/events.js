@@ -218,60 +218,33 @@ var Events = {
 		 */
 		commands : function(player)
 		{
-			// Parse order is commands -> exits -> skills -> channels
-			player.getSocket().once('data', function (data)
+			// only parses commands, channels, etc. must have commands to work.
+			// TODO: localize strings
+			player.getSocket().once('data', function(data)
 			{
 				data = data.toString().trim();
 				var result;
 				if (data) {
 					var command = data.split(' ').shift();
 					var args    = data.split(' ').slice(1).join(' ');
-					// TODO: Implement a BASH like \command to force a command
-					// if an exit shares a name
+					// all commands should exist or be aliased
 					if (!(command in Commands.player_commands)) {
-						// They typed a command that doesn't exist, check to see if there's
-						// an exit with that name in the room
-
-						var found = false;
-						for (var cmd in Commands.player_commands) {
-							try {
-								var regex = new RegExp("^" + command);
-							}
-							catch(err) {
-								continue;
-							}
-							if (cmd.match(regex)) {
-								found = cmd;
-								break;
-							}
-						}
-
-						if (found !== false) {
-							result = Commands.player_commands[found](args, player);
-						} else {
-							var exit = Commands.room_exits(command, player);
-							if (exit === false) {
-								if (!(command in player.getSkills())) {
-									if (!(command in Channels)) {
-										player.say(command + " is not a valid command.");
-										result = true;
-									} else {
-										Channels[command](args, player, players);
-									}
-								} else {
-									result = player.useSkill(command, player, args, rooms, npcs);
-								}
-							}
-						}
+						player.say(command + ' is not a valid command.');
 					} else {
-						result = Commands.player_commands[command](args, player);
+						try {
+							Commands.player_commands[command](args, player);
+						} catch(e) {
+							console.log("Command Exception! " + command);
+							console.log(e);
+							player.say("Server Error executing command, please contact and admin.");
+						}
 					}
+				} else {
+					player.say("what?");
 				}
 
-				if (result !== false) {
-					player.prompt();
-					player.getSocket().emit("commands", player);
-				}
+				player.prompt();
+				player.getSocket().emit('commands', player); // loop
 			});
 		},
 

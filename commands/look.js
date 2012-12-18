@@ -3,9 +3,10 @@ var l10n_file = __dirname + '/../l10n/commands/look.yml';
 var l10n = new require('localize')(require('js-yaml').load(require('fs').readFileSync(l10n_file).toString('utf8')), undefined, 'zz');
 exports.command = function (rooms, items, players, npcs, Commands, GameSchema)
 {
+	Commands.alias('l', 'look');
+
 	return function (args, player)
 	{
-
 		GameSchema.room.Room.findOne({location: player.getLocation()}, function(err, room) {
 			console.log("LOOK: ", player.getLocation(), room);
 
@@ -17,7 +18,7 @@ exports.command = function (rooms, items, players, npcs, Commands, GameSchema)
 
 			// render room
 			player.say(room.title);
-			player.say(room.description[0][player.locale]); //todo cycle or random instead of 0?
+			player.say(room.descr[0][player.locale]); //todo cycle or random instead of 0?
 			player.say('');
 		});
 
