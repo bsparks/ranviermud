@@ -35,7 +35,7 @@ var Commands = {
 	* @param curry [optional] - arguments to pass to aliased command (added to the front of the user's arguments)
 	* i.e. Commands.alias('south', 'go', 'south'); or Commands.alias('backpack', 'inventory');
 	*/
-	alias: function (name, target, curry) {
+	alias: function (name, target, curry, commandHelp) {
 		if(name === target) {
 			console.warn('Attempting to alias player command with same name:', name);
 			return;
@@ -56,6 +56,8 @@ var Commands = {
 		};
 		Commands.player_commands[name].isAlias = true;
 		Commands.player_commands[name].aliasOf = target;
+		// in the help cmd we can utilize the aliasOF to get help if alternate help is not provided
+		Commands.player_commands[name].commandHelp = commandHelp;
 	},
 
 	player_commands : {},
@@ -112,6 +114,7 @@ var Commands = {
 				}
 
 				Commands.player_commands[command_name] = command.command(rooms, items, players, npcs, Commands, GameSchema);
+				Commands.player_commands[command_name].commandHelp = command.commandHelp;
 			}
 		});
 	},

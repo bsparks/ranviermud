@@ -5,7 +5,7 @@ exports.command = function (rooms, items, players, npcs, Commands) {
     Commands.alias('exit', 'go');
     Commands.alias('run', 'go');
     Commands.alias('walk', 'go');
-    Commands.alias('south', 'go', 'south');
+    Commands.alias('south', 'go', 'south', "Move in the south direction if there is an exit that way.");
     Commands.alias('north', 'go', 'north');
     Commands.alias('east', 'go', 'east');
     Commands.alias('west', 'go', 'west');
@@ -26,3 +26,4 @@ exports.command = function (rooms, items, players, npcs, Commands) {
         }
     };
 };
+exports.commandHelp = "Move in the direction of an exit.";

@@ -185,6 +185,7 @@ var Events = {
 					});
 				});
 				break;
+
 			case 'done':
 				name = dontwelcome;
 				// If there is a player connected with the same name boot them the heck off
@@ -203,12 +204,13 @@ var Events = {
 
 					players.addPlayer(player);
 
-					Commands.player_commands.look(null, player);
-					player.prompt();
-
-					player.getSocket().emit('commands', player);
-
+					// since this command (pc cmds in general, might do something async, we need to wrap this in a promise)
+					when(Commands.player_commands.look(null, player), function() {
+						player.prompt();
+						player.getSocket().emit('commands', player);
+					});
 				});
+
 				break;
 			}
 		},
@@ -231,7 +233,7 @@ var Events = {
 				data = data.toString().trim();
 				if (data) {
 					var command = data.split(' ').shift();
-					var args    = data.split(' ').slice(1).join(' ');
+					var args    = data.split(' ').slice(1);
 					// all commands should exist or be aliased
 					if (!(command in Commands.player_commands)) {
 						player.say(command + ' is not a valid command.');

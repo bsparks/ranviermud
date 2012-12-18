@@ -3,7 +3,7 @@ var l10n_file = __dirname + '/../l10n/commands/look.yml';
 var l10n = new require('localize')(require('js-yaml').load(require('fs').readFileSync(l10n_file).toString('utf8')), undefined, 'zz');
 var Deferred = require('promised-io/promise').Deferred;
 
-exports.command = function (rooms, items, players, npcs, Commands, GameSchema)
+exports.command = function(rooms, items, players, npcs, Commands, GameSchema)
 {
 	Commands.alias('l', 'look');
 
@@ -20,6 +20,15 @@ exports.command = function (rooms, items, players, npcs, Commands, GameSchema)
 				// render room
 				player.say(room.title);
 				player.say(room.descr[0][player.locale]); //todo cycle or random instead of 0?
+
+				// render exits
+				player.write('[');
+				player.writeL10n(l10n, 'EXITS');
+				player.write(': ');
+				room.exits.forEach(function(exit) {
+					player.write(exit.direction + ' ');
+				});
+				player.say(']');
 			}
 
 			deferred.resolve(true);
