@@ -11,6 +11,11 @@ exports.command = function(rooms, items, players, npcs, Commands, GameSchema)
 	{
 		var deferred = new Deferred();
 
+		if(args && args.length > 0) {
+			// then we are attempting to look "at" something not just the room, i.e. "look sword"
+
+		}
+
 		GameSchema.room.Room.findOne({location: player.getLocation()}, function(err, room) {
 			//console.log("LOOK: ", player.getLocation(), room);
 
@@ -20,6 +25,13 @@ exports.command = function(rooms, items, players, npcs, Commands, GameSchema)
 				// render room
 				player.say(room.title);
 				player.say(room.descr[0][player.locale]); //todo cycle or random instead of 0?
+
+				// display players in the same room
+				players.eachIf(function (p) {
+					return (p.getName() !== player.getName() && p.getLocation() === player.getLocation());
+				}, function (p) {
+					player.sayL10n(l10n, 'IN_ROOM', p.getName());
+				});
 
 				// render exits
 				player.write('[');
@@ -63,25 +75,6 @@ exports.command = function(rooms, items, players, npcs, Commands, GameSchema)
 			return;
 		}
 
-
-		if (!room)
-		{
-			player.sayL10n(l10n, 'LIMBO');
-			return;
-		}
-
-		// Render the room and its exits
-		player.say(room.getTitle(player.getLocale()));
-		player.say(room.getDescription(player.getLocale()));
-		player.say('');
-
-		// display players in the same room
-		players.eachIf(function (p) {
-			return (p.getName() !== player.getName() && p.getLocation() === player.getLocation());
-		}, function (p) {
-			player.sayL10n(l10n, 'IN_ROOM', p.getName());
-		});
-
 		// show all the items in the rom
 		room.getItems().forEach(function (id) {
 			player.say('<magenta>' + items.get(id).getShortDesc(player.getLocale()) + '</magenta>');
@@ -106,13 +99,6 @@ exports.command = function(rooms, items, players, npcs, Commands, GameSchema)
 				player.say('<'+color+'>' + npcs.get(id).getShortDesc(player.getLocale()) + '</'+color+'>');
 			}
 		});
-
-		player.write('[');
-		player.writeL10n(l10n, 'EXITS');
-		player.write(': ');
-		room.getExits().forEach(function (exit) {
-			player.write(exit.direction + ' ');
-		});
 		player.say(']');
-	}
+	};
 };

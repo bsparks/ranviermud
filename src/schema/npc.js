@@ -5,7 +5,8 @@ var mongoose = require('mongoose'),
     l10n = require('./l10n.js').l10nSchema;
 
 var NpcSchema = new Schema({
-    name: { type: String, required: true, index: { unique: true} }, // developer key
+    name: { type: String, required: true }, // developer key, this will be the unique "type" like "Goblin"
+    title: [l10n], // this will be the duplicatable name, like "Burly Goblin" or "Stalwart Guard"
     keywords: [l10n],
     shortDescr: [l10n],
     descr: [l10n],
@@ -17,6 +18,8 @@ var NpcSchema = new Schema({
         speed: {type: Number, "default": 1},
         experience: {type: Number, "default": 0}
     },
+    inventory: [Schema.Types.ObjectId],
+    equipment: {type: Schema.Types.Mixed},
     behaviors: [String],
     load_max: {type: Number, "default": 1}
 });

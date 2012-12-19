@@ -28,6 +28,10 @@ var PlayerSchema = new Schema({
     lastLogin: Date
 });
 
+PlayerSchema.methods.getAttribute = function(key) {
+    return this.attributes[key];
+};
+
 PlayerSchema.methods.getLocation = function() {
     return this.location;
 };
@@ -38,7 +42,7 @@ PlayerSchema.methods.getLocale = function() {
 
 PlayerSchema.methods.getName = function() {
     return this.name;
-}
+};
 
 // virtuals get called every time in a stack, dont do them here!
 PlayerSchema.methods.setSocket = function(socket) {

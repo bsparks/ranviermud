@@ -5,7 +5,7 @@ LIMBO:
     en: "You found yourself in limbo. How the heck did you manage that?"
     es: "ES-You found yourself in limbo. How the heck did you manage that?"
 IN_ROOM:
-    en: "$[1] is here."
+    en: "<cyan>$[1] is here.</cyan>"
     es: "ES-$[1] is here."
 EXITS:
     en: "Exits"

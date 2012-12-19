@@ -1,6 +1,6 @@
 // goblin.js
 
-var Npc = require('../../src/schema/npc').Npc;
+var Npc = require('../../../src/schema/npc').Npc;
 
 var Goblin = new Npc({
     name: 'Goblin',
