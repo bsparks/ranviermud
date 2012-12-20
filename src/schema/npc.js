@@ -24,6 +24,14 @@ var NpcSchema = new Schema({
     load_max: {type: Number, "default": 1}
 });
 
+NpcSchema.methods.getAttribute = function(key) {
+    return this.attributes[key];
+};
+
+NpcSchema.methods.getShortDesc = function(locale) {
+    return this.shortDescr[0][locale]; // random instead of fixed index?
+};
+
 var Npc = mongoose.model('Npc', NpcSchema);
 
 exports.NpcSchema = NpcSchema;

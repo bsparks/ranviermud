@@ -2,10 +2,13 @@
 
 // a few gobbos to pre-pop the world
 var Npc = require('../../src/schema/npc').Npc;
+var extend = require('extend');
 
-exports.npc = new Npc({
-    location: 'test.1', // load into a special location for template instances
-    title: 'Burly Goblin',
+var nasty = {
+    title: [{
+        en: 'Nasty Goblin',
+        es: 'ES-Nasty Goblin'
+    }],
     name: 'Goblin',
     keywords: [{
         en: 'goblin',
@@ -29,4 +32,14 @@ exports.npc = new Npc({
         experience: 50
     },
     load_max: 8
+};
+
+var gobs = [];
+gobs.push(new Npc(extend(nasty, {location: 'test.1'})));
+gobs.push(new Npc(extend(nasty, {location: 'test.3'})));
+gobs.push(new Npc(extend(nasty, {location: 'test.3'})));
+gobs.push(new Npc(extend(nasty, {location: 'test.3', attributes: {level: 10}})));
+
+gobs.forEach(function(g) {
+    g.save();
 });

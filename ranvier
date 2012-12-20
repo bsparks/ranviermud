@@ -122,9 +122,7 @@ var net = require('net'),
 		});
 
 		fs.readdir(npc_dir, function (err, files) {
-			var npc_file,
-				npc_name,
-				theNpc;
+			var npc_file;
 
 			// Load any npc files
 			for (var j in files) {
@@ -132,10 +130,7 @@ var net = require('net'),
 				if (!fs.statSync(npc_file).isFile()) continue;
 				if (!npc_file.match(/js$/)) continue;
 
-				npc_name = files[j].split('.')[0];
-
-				theNpc = require(npc_file).npc;
-				theNpc.save(dbSaveHandler);
+				require(npc_file);
 			}
 		});
 

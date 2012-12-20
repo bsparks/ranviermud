@@ -21,29 +21,53 @@ exports.command = function(rooms, items, players, npcs, Commands, GameSchema)
 
 			if(!room) {
 				player.sayL10n(l10n, 'LIMBO');
+				deferred.resolve(true);
 			} else {
-				// render room
-				player.say(room.title);
-				player.say(room.descr[0][player.locale]); //todo cycle or random instead of 0?
+				// grab all npcs in room
+				GameSchema.npc.Npc.find({location: room.location}, function(err, npcs) {
+					if(npcs.length > 0) {
+						// search args for looking "at" npc
+					}
 
-				// display players in the same room
-				players.eachIf(function (p) {
-					return (p.getName() !== player.getName() && p.getLocation() === player.getLocation());
-				}, function (p) {
-					player.sayL10n(l10n, 'IN_ROOM', p.getName());
-				});
+					// render room
+					player.say(room.title);
+					player.say(room.descr[0][player.locale]); //todo cycle or random instead of 0?
 
-				// render exits
-				player.write('[');
-				player.writeL10n(l10n, 'EXITS');
-				player.write(': ');
-				room.exits.forEach(function(exit) {
-					player.write(exit.direction + ' ');
+					// display players in the same room
+					players.eachIf(function (p) {
+						return (p.getName() !== player.getName() && p.getLocation() === player.getLocation());
+					}, function (p) {
+						player.sayL10n(l10n, 'IN_ROOM', p.getName());
+					});
+
+					// display npcs in same room
+					npcs.forEach(function(npc) {
+						var color = 'white',
+							diff = npc.getAttribute('level') - player.getAttribute('level');
+
+						if(diff > 3) {
+							color = 'red';
+						} else if(diff >= 1) {
+							color = 'yellow';
+						} else if(diff >= -3 && diff < 0) {
+							color = 'green';
+						}
+
+						player.say('<' + color + '>' + npc.getShortDesc(player.getLocale()) + '</' + color + '>');
+					});
+
+					// render exits
+					player.write('[');
+					player.writeL10n(l10n, 'EXITS');
+					player.write(': ');
+					room.exits.forEach(function(exit) {
+						player.write(exit.direction + ' ');
+					});
+					player.say(']');
+
+					deferred.resolve(true);
 				});
-				player.say(']');
 			}
-
-			deferred.resolve(true);
 		});
 
 		// because we need to do some other async biz, return a promise
