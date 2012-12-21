@@ -19,7 +19,7 @@ var PlayerSchema = new Schema({
         experience: {type: Number, "default": 0}
     },
     inventory: [Schema.Types.ObjectId],
-    equipment: {type: Mixed},
+    equipment: {type: Schema.Types.Mixed},
     locale: {type: String, "default": 'en'},
     prompts: {
         normal: {type: String, "default": '%health/%max_healthHP>'},
