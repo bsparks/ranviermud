@@ -19,14 +19,19 @@ var PlayerSchema = new Schema({
         experience: {type: Number, "default": 0}
     },
     inventory: [Schema.Types.ObjectId],
-    equipment: {type: Object},
+    equipment: {type: Mixed},
     locale: {type: String, "default": 'en'},
     prompts: {
         normal: {type: String, "default": '%health/%max_healthHP>'},
         combat: {type: String, "default": "<bold>[%health/%max_healthHP] 0--{======> %target_name: [%target_health/%target_max_health]</bold>\r\n>"}
     },
-    lastLogin: Date
+    lastLogin: Date,
+    in_combat: {type: Boolean, "default": false}
 });
+
+PlayerSchema.methods.isInCombat = function() {
+    return this.in_combat;
+};
 
 PlayerSchema.methods.getAttribute = function(key) {
     return this.attributes[key];

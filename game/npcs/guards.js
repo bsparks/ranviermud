@@ -1,9 +1,14 @@
-// guard.js
+// guards.js
 
-var Npc = require('../../../src/schema/npc').Npc;
+var Npc = require('../../src/schema/npc').Npc;
+var extend = require('extend');
 
-var Guard = new Npc({
+var guard = {
     name: 'Guard',
+    title: [{
+        en: 'Stalwart Guard',
+        es: 'ES-Stalwart Guard'
+    }],
     keywords: [{
         en: 'guard',
         es: 'guardia'
@@ -29,6 +34,14 @@ var Guard = new Npc({
         experience: 1000
     },
     load_max: 7
-});
+};
 
-exports.npc = Guard;
+var guards = [];
+guards.push(new Npc(extend(guard, {location: 'test.1'})));
+guards.push(new Npc(extend(guard, {location: 'test.2'})));
+guards.push(new Npc(extend(guard, {location: 'test.2', attributes: {level: 5}})));
+guards.push(new Npc(extend(guard, {location: 'test.2', attributes: {level: 10}})));
+
+guards.forEach(function(g) {
+    g.save();
+});

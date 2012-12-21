@@ -100,27 +100,6 @@ var net = require('net'),
 		});
 
 		console.log("*********LOADING NPC FILES***************");
-		// load any instances considered to be templates
-		fs.readdir(npc_dir + 'templates/', function (err, files) {
-			var npc_tmpl_file,
-				npc_tmpl_name,
-				theNpc;
-
-			// Load any npc files
-			for (var j in files) {
-				npc_tmpl_file = npc_dir + 'templates/' + files[j];
-				if (!fs.statSync(npc_tmpl_file).isFile()) continue;
-				if (!npc_tmpl_file.match(/js$/)) continue;
-
-				npc_tmpl_name = files[j].split('.')[0];
-
-				theNpc = require(npc_tmpl_file).npc;
-				theNpc.save(dbSaveHandler);
-			}
-
-			// load all of the other npc files as actual instances
-		});
-
 		fs.readdir(npc_dir, function (err, files) {
 			var npc_file;
 
